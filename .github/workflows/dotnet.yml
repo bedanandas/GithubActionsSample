@@ -32,6 +32,6 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
        name: website
-       path: artifacts/**
+       path: src/GitHubActions.Sample.Api/websites/**
        if-no-files-found: error
        
