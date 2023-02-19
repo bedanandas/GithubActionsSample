@@ -69,7 +69,7 @@ jobs:
       with:
         app-name: ${{ env.app-name }}
         slot-name: staging
-        package: website
+        package: artifacts
 
     - name: az cli logout
       run: az logout
