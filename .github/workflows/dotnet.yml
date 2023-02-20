@@ -87,7 +87,7 @@ jobs:
 
 
   ST1:
-    needs: build_test_package
+    needs: C99
     runs-on: ubuntu-latest
 
     environment:
