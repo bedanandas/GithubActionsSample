@@ -84,7 +84,8 @@ jobs:
     
     - name: az cli logout
       run: az logout
-	  
+
+
   ST1:
     needs: build_test_package
     runs-on: ubuntu-latest
