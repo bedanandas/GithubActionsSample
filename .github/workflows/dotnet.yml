@@ -11,8 +11,11 @@ on:
     branches: [ "main" ]
 
 env:
-  app-name: "c99-github-actions"
-  rg-name: "c99-gh-actions-sample"
+  c99-app-name: "c99-github-actions"
+  c99-rg-name: "c99-gh-actions-sample"
+  
+  st1-app-name: "st1-github-actions"
+  st1-rg-name: "st1-gh-actions-sample"
 
 jobs:
   build_test_package:
@@ -44,13 +47,13 @@ jobs:
        path: /home/runner/work/GithubActionsSample/GithubActionsSample/releaseArtifact/
        if-no-files-found: error
   
-  c99:
+  C99:
     needs: build_test_package
     runs-on: ubuntu-latest
 
     environment:
       name: C99
-      url: ${{ steps.deploywebapp.outputs.webapp-url }}
+      url: ${{ steps.slot_swap.outputs.url }}
 
     steps:
     - name: Download a Build Artifact
@@ -68,18 +71,57 @@ jobs:
       id: deploywebapp
       uses: azure/webapps-deploy@v2
       with:
-        app-name: ${{ env.app-name }}
+        app-name: ${{ env.c99-app-name }}
         slot-name: staging
         package: artifacts
 
     - name: Swap staging slot into production
       id: slot_swap
       run: |
-        az webapp deployment slot swap -g ${{ env.rg-name }} -n ${{ env.app-name }} -s staging
-        url=$(az webapp show -g ${{ env.rg-name }} -n ${{ env.app-name }} --query "defaultHostName" -o tsv)
+        az webapp deployment slot swap -g ${{ env.c99-rg-name }} -n ${{ env.c99-app-name }} -s staging
+        url=$(az webapp show -g ${{ env.c99-rg-name }} -n ${{ env.c99-app-name }} --query "defaultHostName" -o tsv)
+        echo "::set-output name=url::http://$url"
+    
+    - name: az cli logout
+      run: az logout
+	  
+  ST1:
+    needs: build_test_package
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ST1
+      url: ${{ steps.slot_swap.outputs.url }}
+
+    steps:
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: artifacts
+        path: artifacts
+
+    - name: Login via Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy web app to staging/inactive slot/slice
+      id: deploywebapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.st1-app-name }}
+        slot-name: staging
+        package: artifacts
+
+    - name: Swap staging slot into production
+      id: slot_swap
+      run: |
+        az webapp deployment slot swap -g ${{ env.st1-rg-name }} -n ${{ env.st1-app-name }} -s staging
+        url=$(az webapp show -g ${{ env.st1-rg-name }} -n ${{ env.st1-app-name }} --query "defaultHostName" -o tsv)
         echo "::set-output name=url::http://$url"
     
     - name: az cli logout
       run: az logout
       
-    
+
+      
