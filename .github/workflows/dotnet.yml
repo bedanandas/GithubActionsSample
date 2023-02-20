@@ -46,48 +46,10 @@ jobs:
        name: artifacts
        path: /home/runner/work/GithubActionsSample/GithubActionsSample/releaseArtifact/
        if-no-files-found: error
-  
-  C99:
-    needs: build_test_package
-    runs-on: ubuntu-latest
-
-    environment:
-      name: C99
-      url: ${{ steps.slot_swap.outputs.url }}
-
-    steps:
-    - name: Download a Build Artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: artifacts
-        path: artifacts
-
-    - name: Login via Azure CLI
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Deploy web app to staging/inactive slot/slice
-      id: deploywebapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ env.c99-app-name }}
-        slot-name: staging
-        package: artifacts
-
-    - name: Swap staging slot into production
-      id: slot_swap
-      run: |
-        az webapp deployment slot swap -g ${{ env.c99-rg-name }} -n ${{ env.c99-app-name }} -s staging
-        url=$(az webapp show -g ${{ env.c99-rg-name }} -n ${{ env.c99-app-name }} --query "defaultHostName" -o tsv)
-        echo "::set-output name=url::http://$url"
-    
-    - name: az cli logout
-      run: az logout
 
 
   ST1:
-    needs: C99
+    needs: build_test_package
     runs-on: ubuntu-latest
 
     environment:
